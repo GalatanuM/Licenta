@@ -1,3 +1,4 @@
+26 martie 2025
 Am incercat sa urmez standardul usb si sa folosesc Usage Page (Simulation Controls), dar pentru ambreiaj nu functioneaza, desi el este mentionat acolo in document si se pare ca nu am fost singurul care a ajuns la problema asta: https://www.overtake.gg/threads/anyone-muck-around-with-their-own-usb-hid-and-get-the-clutch-to-work.189256/
 
 Iau in considerare sa folosesc Usage Page (Generic Desktop) si 4 axe care vor fi ulterior mapate corespunzator in jocuri cum ar fi Asseto Corsa sau iRacing care ofera libertatea de a selecta ce axa/buton sa fie folosita pentru ce (acceleratie, frana, volan, claxon etc)
