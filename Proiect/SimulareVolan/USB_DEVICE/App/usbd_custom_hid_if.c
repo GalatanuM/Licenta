@@ -91,37 +91,58 @@
 __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DESC_SIZE] __ALIGN_END =
 {
   /* USER CODE BEGIN 0 */
-	0x05, 0x01,        // Usage Page (Generic Desktop)
-	0x09, 0x04,        // Usage (Joystick)
-	0xA1, 0x01,        // Collection (Application)
+	0x05, 0x02,        // Usage Page (Simulation Controls)
+	  0x09, 0xBB,        // Usage (Steering)
+	  0xA1, 0x01,        // Collection (Application)
 
-	  // --- 8 Buttons (1 byte)
-	  0x05, 0x09,       // Usage Page (Button)
-	  0x19, 0x01,       // Usage Minimum (Button 1)
-	  0x29, 0x08,       // Usage Maximum (Button 8)
-	  0x15, 0x00,       // Logical Minimum (0)
-	  0x25, 0x01,       // Logical Maximum (1)
-	  0x75, 0x01,       // Report Size (1)
-	  0x95, 0x08,       // Report Count (8)
-	  0x81, 0x02,       // Input (Data, Variable, Absolute)
+		// --- Buttons (8 buttons, packed into 1 byte) ---
+		0x05, 0x09,       // Usage Page (Button)
+		0x19, 0x01,       // Usage Minimum (Button 1)
+		0x29, 0x08,       // Usage Maximum (Button 8)
+		0x15, 0x00,       // Logical Minimum (0)
+		0x25, 0x01,       // Logical Maximum (1)
+		0x95, 0x08,       // Report Count (8 buttons)
+		0x75, 0x01,       // Report Size (1 bit per button)
+		0x81, 0x02,       // Input (Data, Variable, Absolute)
 
-	  // --- X Axis (16-bit signed relative)
-	  0x05, 0x01,       // Usage Page (Generic Desktop)
-	  0x09, 0x30,       // Usage (X)
-	  0x16, 0x00, 0x80, // Logical Minimum (-32768)
-	  0x26, 0xFF, 0x7F, // Logical Maximum (+32767)
-	  0x75, 0x10,       // Report Size (16)
-	  0x95, 0x01,       // Report Count (1)
-	  0x81, 0x02,       // Input (Data, Variable, Relative)
+		// --- Padding (if needed to align next field) ---
+		0x75, 0x08,       // Report Size (8 bits)
+		0x95, 0x01,       // Report Count (1)
+		0x81, 0x03,       // Input (Constant, Variable) — padding byte
 
-	  // --- Ry and Rz (16-bit signed absolute)
-	  0x09, 0x33,       // Usage (Ry)
-	  0x09, 0x35,       // Usage (Rz)
-	  0x16, 0x00, 0x80, // Logical Minimum (-32768)
-	  0x26, 0xFF, 0x7F, // Logical Maximum (+32767)
-	  0x75, 0x10,       // Report Size (16)
-	  0x95, 0x02,       // Report Count (2)
-	  0x81, 0x02,       // Input (Data, Variable, Absolute)
+		// --- Steering (signed 16-bit) ---
+		0x05, 0x02,       // Usage Page (Simulation Controls)
+		0x09, 0xBB,       // Usage (Steering)
+		0x16, 0x01, 0x80, // Logical Minimum (-32767)
+		0x26, 0xFF, 0x7F, // Logical Maximum (32767)
+		0x75, 0x10,       // Report Size (16 bits)
+		0x95, 0x01,       // Report Count (1)
+		0x81, 0x02,       // Input (Data, Variable, Absolute)
+
+		// --- Throttle ---
+		0x09, 0xC4,       // Usage (Accelerator)
+		0x15, 0x00,
+		0x26, 0xFF, 0xFF, // Logical Maximum (65535)
+		0x75, 0x10,
+		0x95, 0x01,
+		0x81, 0x02,
+
+		// --- Brake ---
+		0x09, 0xC5,       // Usage (Brake)
+		0x15, 0x00,
+		0x26, 0xFF, 0xFF,
+		0x75, 0x10,
+		0x95, 0x01,
+		0x81, 0x02,
+
+		// --- Clutch ---
+		0x09, 0xC6,       // Usage (Clutch)
+		0x15, 0x00,
+		0x26, 0xFF, 0xFF,
+		0x75, 0x10,
+		0x95, 0x01,
+		0x81, 0x02,
+
   /* USER CODE END 0 */
   0xC0    /*     END_COLLECTION	             */
 };

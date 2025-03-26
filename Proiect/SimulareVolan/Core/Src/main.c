@@ -28,10 +28,12 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 typedef struct{
-	uint8_t buttons;
-	int16_t wheel;
-	uint16_t acceleration;
-	uint16_t brake;
+	uint8_t buttons;     // 8 buttons (bit-packed)
+	uint8_t padding;     // Alignment padding
+	int16_t steering;    // -32767 to +32767
+	uint16_t throttle;   // 0–65535
+	uint16_t brake;      // 0–65535
+	uint16_t clutch;     // 0–65535
 }wheelReport;
 /* USER CODE END PTD */
 
@@ -69,9 +71,10 @@ static void MX_TIM3_Init(void);
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-	reportContainer.wheel = __HAL_TIM_GET_COUNTER(htim) >> 8;
-	reportContainer.acceleration = __HAL_TIM_GET_COUNTER(htim) >> 8;
-	reportContainer.brake = __HAL_TIM_GET_COUNTER(htim) >> 8;
+	reportContainer.steering = __HAL_TIM_GET_COUNTER(htim);
+	reportContainer.throttle = __HAL_TIM_GET_COUNTER(htim);
+	reportContainer.brake = __HAL_TIM_GET_COUNTER(htim);
+	reportContainer.clutch = __HAL_TIM_GET_COUNTER(htim);
 }
 /* USER CODE END 0 */
 
@@ -108,14 +111,17 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Encoder_Start_IT(&htim3, TIM_CHANNEL_ALL);
-  reportContainer.buttons = 0x55|0x55;
+  reportContainer.buttons = 0x55;
+  reportContainer.padding = 0;
+  //reportContainer.clutch = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&reportContainer, 7);
+	  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&reportContainer, 10);
+	  HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
