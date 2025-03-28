@@ -74,9 +74,9 @@ static void MX_TIM3_Init(void);
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
 	reportContainer.steering = __HAL_TIM_GET_COUNTER(htim);
-	reportContainer.throttle = __HAL_TIM_GET_COUNTER(htim);
-	reportContainer.brake = __HAL_TIM_GET_COUNTER(htim);
-	reportContainer.clutch = __HAL_TIM_GET_COUNTER(htim);
+	//reportContainer.throttle = __HAL_TIM_GET_COUNTER(htim);
+	//reportContainer.brake = __HAL_TIM_GET_COUNTER(htim);
+	//reportContainer.clutch = __HAL_TIM_GET_COUNTER(htim);
 }
 /* USER CODE END 0 */
 
@@ -114,9 +114,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_Encoder_Start_IT(&htim3, TIM_CHANNEL_ALL);
   reportContainer.report_id = 0x10;
-  reportContainer.buttons = 0x55;
+  reportContainer.buttons = 0x01;
   reportContainer.padding1 = 0;
   reportContainer.padding2 = 0;
+  reportContainer.throttle = 0;
+  reportContainer.brake = 0;
+  reportContainer.clutch = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */

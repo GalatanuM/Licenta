@@ -119,14 +119,14 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 
 		// --- Steering (signed 16-bit) ---
 		0x05, 0x02,       // Usage Page (Simulation Controls)
-		0x09, 0xBB,       // Usage (Steering)
+		0x09, 0xC8,       // Usage (Steering)
 		0x16, 0x01, 0x80, // Logical Minimum (-32767)
 		0x26, 0xFF, 0x7F, // Logical Maximum (32767)
 		0x75, 0x10,
 		0x95, 0x01,
 		0x81, 0x02,
 
-		// --- Throttle ---
+		// --- Accelerator ---
 		0x09, 0xC4,       // Usage (Accelerator)
 		0x15, 0x00,
 		0x26, 0xFF, 0xFF,
