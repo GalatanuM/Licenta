@@ -790,6 +790,7 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 static int8_t CUSTOM_HID_Init_FS(void);
 static int8_t CUSTOM_HID_DeInit_FS(void);
 static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state);
+static uint8_t *CUSTOM_HID_GetReport(uint16_t *ReportLength);
 
 /**
   * @}
@@ -801,6 +802,12 @@ USBD_CUSTOM_HID_ItfTypeDef USBD_CustomHID_fops_FS =
   CUSTOM_HID_Init_FS,
   CUSTOM_HID_DeInit_FS,
   CUSTOM_HID_OutEvent_FS
+#ifdef USBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED
+  ,CUSTOM_HID_CtrlReqComplete
+#endif /* USBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED */
+#ifdef USBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED
+  ,CUSTOM_HID_GetReport
+#endif /* USBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED */
 };
 
 /** @defgroup USBD_CUSTOM_HID_Private_Functions USBD_CUSTOM_HID_Private_Functions
@@ -844,8 +851,6 @@ static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
   UNUSED(event_idx);
   UNUSED(state);
 
-  //TODO identify report id from host to know which effect to process
-
   /* Start next USB packet transfer once data processing is completed */
   if (USBD_CUSTOM_HID_ReceivePacket(&hUsbDeviceFS) != (uint8_t)USBD_OK)
   {
@@ -870,12 +875,54 @@ static int8_t USBD_CUSTOM_HID_SendReport_FS(uint8_t *report, uint16_t len)
 }
 */
 
-void apply_force_to_motor(int16_t force)
+#ifdef USBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED
+/**
+  * @brief  TEMPLATE_CUSTOM_HID_CtrlReqComplete
+  *         Manage the CUSTOM HID control request complete
+  * @param  request: control request
+  * @param  wLength: request wLength
+  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
+  */
+static int8_t TEMPLATE_CUSTOM_HID_CtrlReqComplete(uint8_t request, uint16_t wLength)
 {
-  // Replace this with your actual motor control code
-  // Example: set PWM duty cycle or direction
-  printf("Applying force: %d\n", force);
+  UNUSED(wLength);
+
+  switch (request)
+  {
+    case CUSTOM_HID_REQ_SET_REPORT:
+
+      break;
+
+    case CUSTOM_HID_REQ_GET_REPORT:
+
+      break;
+
+    default:
+      break;
+  }
+
+  return (0);
 }
+
+#endif /* USBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED */
+
+#ifdef USBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED
+/**
+  * @brief  CUSTOM_HID_GetReport
+  *         Manage the CUSTOM HID control Get Report request
+  * @param  event_idx: event index
+  * @param  state: event state
+  * @retval return pointer to HID report
+  */
+static uint8_t *CUSTOM_HID_GetReport(uint16_t *ReportLength)
+{
+	UNUSED(ReportLength);
+	uint8_t *pbuff;
+	//todo Fill pbuff with the information that the host is expecting for all the effects
+	return (pbuff);
+}
+
+#endif /* USBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED */
 
 /* USER CODE END 7 */
 
