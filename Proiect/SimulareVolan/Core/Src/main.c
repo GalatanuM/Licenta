@@ -27,15 +27,17 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-typedef struct{
-	uint8_t report_id;
-	uint8_t padding1;
-	uint8_t buttons;     // 8 buttons (bit-packed)
-	uint8_t padding2;     // Alignment padding
-	int16_t steering;    // -32767 to +32767
-	uint16_t throttle;   // 0–65535
-	uint16_t brake;      // 0–65535
-	uint16_t clutch;     // 0–65535
+typedef struct __attribute__((__packed__)){
+	uint8_t id;
+	uint64_t buttons;
+	int16_t X;
+	int16_t Y;
+	int16_t Z;
+	int16_t RX;
+	int16_t RY;
+	int16_t RZ;
+	int16_t Dial;
+	int16_t Slider;
 }wheelReport;
 /* USER CODE END PTD */
 
@@ -50,14 +52,14 @@ typedef struct{
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+/* USER CODE BEGIN PV */
 TIM_HandleTypeDef htim3;
 
 wheelReport reportContainer;
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
-/* USER CODE BEGIN PV */
-
+static int16_t encoder;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -73,10 +75,7 @@ static void MX_TIM3_Init(void);
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-	reportContainer.steering = __HAL_TIM_GET_COUNTER(htim);
-	//reportContainer.throttle = __HAL_TIM_GET_COUNTER(htim);
-	//reportContainer.brake = __HAL_TIM_GET_COUNTER(htim);
-	//reportContainer.clutch = __HAL_TIM_GET_COUNTER(htim);
+	encoder = __HAL_TIM_GET_COUNTER(htim);
 }
 /* USER CODE END 0 */
 
@@ -113,21 +112,32 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Encoder_Start_IT(&htim3, TIM_CHANNEL_ALL);
-  reportContainer.report_id = 0x10;
-  reportContainer.buttons = 0x01;
-  reportContainer.padding1 = 0;
-  reportContainer.padding2 = 0;
-  reportContainer.throttle = 0;
-  reportContainer.brake = 0;
-  reportContainer.clutch = 0;
+	reportContainer.id = 0x01;
+	reportContainer.buttons = 0x55555555;
+	reportContainer.X = 0;
+	reportContainer.Y = 0;
+	reportContainer.Z = 0;
+	reportContainer.RX = 0;
+	reportContainer.RY = 0;
+	reportContainer.RZ = 0;
+	reportContainer.Dial = 0;
+	reportContainer.Slider = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&reportContainer, 12);
-	  HAL_Delay(10);
+	reportContainer.X = encoder;
+	reportContainer.Y = encoder;
+	reportContainer.Z = encoder;
+	reportContainer.RX = encoder;
+	reportContainer.RY = encoder;
+	reportContainer.RZ = encoder;
+	reportContainer.Dial = encoder;
+	reportContainer.Slider = encoder;
+	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&reportContainer, 25);
+	HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
