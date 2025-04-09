@@ -1,5 +1,3 @@
-../USB_DEVICE/App/usbd_custom_hid_if.c:782:15:CUSTOM_HID_Init_FS	4	static
-../USB_DEVICE/App/usbd_custom_hid_if.c:793:15:CUSTOM_HID_DeInit_FS	4	static
-../USB_DEVICE/App/usbd_custom_hid_if.c:806:15:CUSTOM_HID_OutEvent_FS	16	static
-../USB_DEVICE/App/usbd_custom_hid_if.c:844:15:CUSTOM_HID_CtrlReqComplete	16	static
-../USB_DEVICE/App/usbd_custom_hid_if.c:875:17:CUSTOM_HID_GetReport	24	static
+../USB_DEVICE/App/usbd_custom_hid_if.c:772:15:CUSTOM_HID_Init_FS	4	static
+../USB_DEVICE/App/usbd_custom_hid_if.c:783:15:CUSTOM_HID_DeInit_FS	4	static
+../USB_DEVICE/App/usbd_custom_hid_if.c:796:15:CUSTOM_HID_OutEvent_FS	88	static

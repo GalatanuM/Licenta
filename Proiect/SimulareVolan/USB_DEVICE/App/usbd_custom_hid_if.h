@@ -30,7 +30,7 @@
 #include "usbd_customhid.h"
 
 /* USER CODE BEGIN INCLUDE */
-
+#include <stdbool.h>
 /* USER CODE END INCLUDE */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -49,9 +49,8 @@
   */
 
 /* USER CODE BEGIN EXPORTED_DEFINES */
-#define FFB_ID_OFFSET 0x00
 #define MAX_EFFECTS 0x28
-#define MAX_AXIS 3
+#define MAX_AXIS 2
 
 // HID Usage - Axes
 #define HID_USAGE_X     0x30
@@ -133,91 +132,137 @@
   */
 
 /* USER CODE BEGIN EXPORTED_TYPES */
- typedef struct {
-     uint8_t reportId;
-     uint8_t effectBlockIndex;
-     uint8_t effectState;
- } FFB_PIDStateReport_t;
+ typedef struct
+ {
+ 	uint8_t reportId;
+ 	uint8_t status;
+ } __attribute__((packed)) reportFFB_status_t;
 
- typedef struct {
-     uint8_t reportId;
-     uint8_t effectBlockIndex;
-     uint8_t effectType;
-     uint16_t duration;
-     uint16_t triggerRepeatInterval;
-     uint16_t samplePeriod;
-     uint16_t startDelay;
-     uint8_t gain;
-     uint8_t triggerButton;
-     uint8_t enableAxis;
-     uint16_t directionX;
- } FFB_SetEffect_t;
+ typedef struct
+ {
+ 	uint8_t reportId;
+ 	uint8_t effectBlockIndex;
+ 	uint8_t effectType;
+ 	uint16_t duration;
+ 	uint16_t triggerRepeatInterval;
+ 	uint16_t samplePeriod;
+ 	uint16_t startDelay;
+ 	uint8_t gain;
+ 	uint8_t triggerButton;
+ 	uint8_t enableAxis;
+ 	uint16_t directionX;
+ } __attribute__((packed)) FFB_SetEffect_t;
 
- typedef struct {
-     uint8_t reportId;
-     uint8_t effectBlockIndex;
-     int16_t cpOffset;
-     int16_t positiveCoefficient;
-     int16_t negativeCoefficient;
-     uint16_t positiveSaturation;
-     uint16_t negativeSaturation;
-     uint16_t deadBand;
- } FFB_SetCondition_t;
+ typedef struct
+ {
+ 	uint8_t reportId;
+ 	uint8_t effectBlockIndex;
+ 	uint8_t parameterBlockOffset;
+ 	int16_t cpOffset;
+ 	int16_t positiveCoefficient;
+ 	int16_t negativeCoefficient;
+ 	uint16_t positiveSaturation;
+ 	uint16_t negativeSaturation;
+ 	uint16_t deadBand;
+ } __attribute__((packed)) FFB_SetCondition_Data_t;
 
- typedef struct {
-     uint8_t reportId;
-     uint8_t effectBlockIndex;
-     uint16_t magnitude;
-     int16_t offset;
-     uint16_t phase;
-     uint32_t period;
- } FFB_SetPeriodic_t;
+ typedef struct
+ {
+ 	uint8_t effectType;
+ 	uint16_t byteCount;
+ } __attribute__((packed)) FFB_CreateNewEffect_Feature_Data_t;
 
- typedef struct {
-     uint8_t reportId;
-     uint8_t effectBlockIndex;
-     uint16_t startLevel;
-     uint16_t endLevel;
- } FFB_SetRamp_t;
+ typedef struct
+ {
+ 	uint8_t effectBlockIndex;
+ 	uint8_t loadStatus;
+ 	uint16_t ramPoolAvailable;
+ } __attribute__((packed)) FFB_BlockLoad_Feature_Data_t;
 
- typedef struct {
-     uint8_t reportId;
-     uint8_t effectBlockIndex;
-     uint16_t magnitude;
- } FFB_SetConstantForce_t;
+ typedef struct
+ {
+ 	uint16_t ramPoolSize;
+ 	uint8_t maxSimultaneousEffects;
+ 	uint8_t memoryManagement;
+ } __attribute__((packed)) FFB_PIDPool_Feature_Data_t;
 
- typedef struct {
-     uint8_t reportId;
-     uint8_t effectBlockIndex;
-     uint16_t attackLevel;
-     uint16_t fadeLevel;
-     uint32_t attackTime;
-     uint32_t fadeTime;
- } FFB_SetEnvelope_t;
+ typedef struct
+ {
+ 	uint8_t reportId;
+ 	uint8_t effectBlockIndex;
+ 	uint16_t magnitude;
+ 	int16_t offset;
+ 	uint16_t phase;
+ 	uint32_t period;
+ } __attribute__((packed)) FFB_SetPeriodic_Data_t;
 
- typedef struct {
-     uint8_t reportId;
-     uint8_t effectBlockIndex;
-     uint8_t operation;
-     uint8_t loopCount;
- } FFB_EffectOp_t;
+ typedef struct
+ {
+ 	uint8_t reportId;
+ 	uint8_t effectBlockIndex;
+ 	uint16_t attackLevel;
+ 	uint16_t fadeLevel;
+ 	uint32_t attackTime;
+ 	uint32_t fadeTime;
+ } __attribute__((packed)) FFB_SetEnvelope_Data_t;
 
- typedef struct {
-     uint8_t effectType;
-     uint16_t byteCount;
- } FFB_CreateNewEffect_Feature_t;
+ typedef struct
+ {
+ 	uint8_t reportId;
+ 	uint8_t effectBlockIndex;
+ 	uint16_t startLevel;
+ 	uint16_t endLevel;
+ } __attribute__((packed)) FFB_SetRamp_Data_t;
 
- typedef struct {
-     uint8_t effectBlockIndex;
-     uint8_t loadStatus;
-     uint16_t ramPoolAvailable;
- } FFB_BlockLoad_Feature_t;
+ typedef struct
+ {
+ 	int16_t cpOffset;
+ 	int16_t positiveCoefficient;
+ 	int16_t negativeCoefficient;
+ 	uint16_t positiveSaturation;
+ 	uint16_t negativeSaturation;
+ 	uint16_t deadBand;
+ } FFB_Effect_Condition;
 
- typedef struct {
-     uint16_t ramPoolSize;
-     uint8_t maxSimultaneousEffects;
-     uint8_t memoryManagement;
- } FFB_PIDPool_Feature_t;
+ typedef struct
+ {
+ 	uint8_t reportId;
+ 	uint8_t effectBlockIndex;
+ 	uint8_t state;
+ 	uint8_t loopCount;
+ } __attribute__((packed)) FFB_EffOp_Data_t;
+
+ typedef struct
+ {
+ 	volatile uint8_t state;
+ 	uint8_t type;
+ 	int16_t offset;
+ 	uint8_t gain;
+ 	int16_t magnitude;
+ 	int16_t startLevel;
+ 	int16_t endLevel;
+ 	float axisMagnitudes[MAX_AXIS];
+
+ 	FFB_Effect_Condition conditions[MAX_AXIS];
+ 	int16_t phase;
+ 	uint16_t period;
+ 	uint32_t duration;
+ 	uint16_t attackLevel, fadeLevel;
+ 	uint32_t attackTime, fadeTime;
+
+ 	uint16_t startDelay;
+ 	uint32_t startTime;
+ 	uint16_t samplePeriod;
+ 	bool useEnvelope;
+ 	bool useSingleCondition;
+ } FFB_Effect;
+
+ typedef struct
+ {
+ 	uint8_t reportId;
+ 	uint8_t effectBlockIndex;
+ 	int16_t magnitude;
+ } __attribute__((packed)) FFB_SetConstantForce_Data_t;
 /* USER CODE END EXPORTED_TYPES */
 
 /**
