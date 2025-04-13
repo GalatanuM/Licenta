@@ -1,27 +1,103 @@
-01:18:09 **** Incremental Build of configuration Debug for project SimulareVolan ****
+20:23:03 **** Incremental Build of configuration Debug for project SimulareVolan ****
 make -j16 all 
-arm-none-eabi-gcc "../USB_DEVICE/App/usbd_custom_hid_if.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F405xx -UUSBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED -UUSBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../USB_DEVICE/App -I../USB_DEVICE/Target -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"USB_DEVICE/App/usbd_custom_hid_if.d" -MT"USB_DEVICE/App/usbd_custom_hid_if.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "USB_DEVICE/App/usbd_custom_hid_if.o"
-../USB_DEVICE/App/usbd_custom_hid_if.c:739:15: warning: 'CUSTOM_HID_CtrlReqComplete' declared 'static' but never defined [-Wunused-function]
-  739 | static int8_t CUSTOM_HID_CtrlReqComplete(uint8_t request, uint16_t wLength);
-      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~
-../USB_DEVICE/App/usbd_custom_hid_if.c:740:17: warning: 'CUSTOM_HID_GetReport' declared 'static' but never defined [-Wunused-function]
-  740 | static uint8_t *CUSTOM_HID_GetReport(uint16_t *ReportLength);
-      |                 ^~~~~~~~~~~~~~~~~~~~
+arm-none-eabi-gcc "../USB_DEVICE/App/usb_device.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED -DUSE_HAL_DRIVER -DSTM32F405xx -UUSBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../USB_DEVICE/App -I../USB_DEVICE/Target -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"USB_DEVICE/App/usb_device.d" -MT"USB_DEVICE/App/usb_device.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "USB_DEVICE/App/usb_device.o"
+arm-none-eabi-gcc "../USB_DEVICE/App/usbd_custom_hid_if.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED -DUSE_HAL_DRIVER -DSTM32F405xx -UUSBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../USB_DEVICE/App -I../USB_DEVICE/Target -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"USB_DEVICE/App/usbd_custom_hid_if.d" -MT"USB_DEVICE/App/usbd_custom_hid_if.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "USB_DEVICE/App/usbd_custom_hid_if.o"
+../USB_DEVICE/App/usbd_custom_hid_if.c: In function 'create_new_effect':
+../USB_DEVICE/App/usbd_custom_hid_if.c:799:9: warning: implicit declaration of function 'send_status_report' [-Wimplicit-function-declaration]
+  799 |         send_status_report();
+      |         ^~~~~~~~~~~~~~~~~~
+../USB_DEVICE/App/usbd_custom_hid_if.c: At top level:
+../USB_DEVICE/App/usbd_custom_hid_if.c:903:6: warning: conflicting types for 'send_status_report'; have 'void(void)'
+  903 | void send_status_report(void)
+      |      ^~~~~~~~~~~~~~~~~~
+../USB_DEVICE/App/usbd_custom_hid_if.c:799:9: note: previous implicit declaration of 'send_status_report' with type 'void(void)'
+  799 |         send_status_report();
+      |         ^~~~~~~~~~~~~~~~~~
 arm-none-eabi-g++ -o "SimulareVolan.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Marco\Documents\GitHub\Licenta\Proiect\SimulareVolan\STM32F405RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="SimulareVolan.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 Finished building target: SimulareVolan.elf
  
 arm-none-eabi-size  SimulareVolan.elf 
 arm-none-eabi-objdump -h -S SimulareVolan.elf  > "SimulareVolan.list"
    text	   data	    bss	    dec	    hex	filename
-  29868	   1324	   4260	  35452	   8a7c	SimulareVolan.elf
+  31400	   1340	   7316	  40056	   9c78	SimulareVolan.elf
 Finished building: default.size.stdout
  
 Finished building: SimulareVolan.list
  
-01:18:12 **** Incremental Build of configuration Debug for project SimulareVolan ****
+20:23:07 **** Incremental Build of configuration Debug for project SimulareVolan ****
 make -j16 all 
 arm-none-eabi-size  SimulareVolan.elf 
    text	   data	    bss	    dec	    hex	filename
-  29868	   1324	   4260	  35452	   8a7c	SimulareVolan.elf
+  31400	   1340	   7316	  40056	   9c78	SimulareVolan.elf
+Finished building: default.size.stdout
+ 
+20:26:30 **** Incremental Build of configuration Debug for project SimulareVolan ****
+make -j16 all 
+arm-none-eabi-size  SimulareVolan.elf 
+   text	   data	    bss	    dec	    hex	filename
+  31400	   1340	   7316	  40056	   9c78	SimulareVolan.elf
+Finished building: default.size.stdout
+ 
+20:41:09 **** Incremental Build of configuration Debug for project SimulareVolan ****
+make -j16 all 
+arm-none-eabi-gcc "../USB_DEVICE/App/usbd_custom_hid_if.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED -DUSE_HAL_DRIVER -DSTM32F405xx -UUSBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../USB_DEVICE/App -I../USB_DEVICE/Target -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"USB_DEVICE/App/usbd_custom_hid_if.d" -MT"USB_DEVICE/App/usbd_custom_hid_if.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "USB_DEVICE/App/usbd_custom_hid_if.o"
+arm-none-eabi-g++ -o "SimulareVolan.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Marco\Documents\GitHub\Licenta\Proiect\SimulareVolan\STM32F405RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="SimulareVolan.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+Finished building target: SimulareVolan.elf
+ 
+arm-none-eabi-size  SimulareVolan.elf 
+arm-none-eabi-objdump -h -S SimulareVolan.elf  > "SimulareVolan.list"
+   text	   data	    bss	    dec	    hex	filename
+  31304	   1340	   7316	  39960	   9c18	SimulareVolan.elf
+Finished building: default.size.stdout
+ 
+Finished building: SimulareVolan.list
+ 
+20:58:08 **** Incremental Build of configuration Debug for project SimulareVolan ****
+make -j16 all 
+arm-none-eabi-size  SimulareVolan.elf 
+   text	   data	    bss	    dec	    hex	filename
+  31304	   1340	   7316	  39960	   9c18	SimulareVolan.elf
+Finished building: default.size.stdout
+ 
+20:59:35 **** Incremental Build of configuration Debug for project SimulareVolan ****
+make -j16 all 
+arm-none-eabi-size  SimulareVolan.elf 
+   text	   data	    bss	    dec	    hex	filename
+  31304	   1340	   7316	  39960	   9c18	SimulareVolan.elf
+Finished building: default.size.stdout
+ 
+21:00:20 **** Incremental Build of configuration Debug for project SimulareVolan ****
+make -j16 all 
+arm-none-eabi-size  SimulareVolan.elf 
+   text	   data	    bss	    dec	    hex	filename
+  31304	   1340	   7316	  39960	   9c18	SimulareVolan.elf
+Finished building: default.size.stdout
+ 
+21:01:12 **** Incremental Build of configuration Debug for project SimulareVolan ****
+make -j16 all 
+arm-none-eabi-size  SimulareVolan.elf 
+   text	   data	    bss	    dec	    hex	filename
+  31304	   1340	   7316	  39960	   9c18	SimulareVolan.elf
+Finished building: default.size.stdout
+ 
+21:03:19 **** Incremental Build of configuration Debug for project SimulareVolan ****
+make -j16 all 
+arm-none-eabi-gcc "../USB_DEVICE/App/usbd_custom_hid_if.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED -DUSE_HAL_DRIVER -DSTM32F405xx -UUSBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../USB_DEVICE/App -I../USB_DEVICE/Target -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"USB_DEVICE/App/usbd_custom_hid_if.d" -MT"USB_DEVICE/App/usbd_custom_hid_if.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "USB_DEVICE/App/usbd_custom_hid_if.o"
+arm-none-eabi-g++ -o "SimulareVolan.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Marco\Documents\GitHub\Licenta\Proiect\SimulareVolan\STM32F405RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="SimulareVolan.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+Finished building target: SimulareVolan.elf
+ 
+arm-none-eabi-size  SimulareVolan.elf 
+arm-none-eabi-objdump -h -S SimulareVolan.elf  > "SimulareVolan.list"
+   text	   data	    bss	    dec	    hex	filename
+  31312	   1340	   7316	  39968	   9c20	SimulareVolan.elf
+Finished building: default.size.stdout
+ 
+Finished building: SimulareVolan.list
+ 
+21:06:39 **** Incremental Build of configuration Debug for project SimulareVolan ****
+make -j16 all 
+arm-none-eabi-size  SimulareVolan.elf 
+   text	   data	    bss	    dec	    hex	filename
+  31312	   1340	   7316	  39968	   9c20	SimulareVolan.elf
 Finished building: default.size.stdout
  

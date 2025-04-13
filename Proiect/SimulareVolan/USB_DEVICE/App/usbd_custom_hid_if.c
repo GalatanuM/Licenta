@@ -32,6 +32,10 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 extern USBD_HandleTypeDef hUsbDeviceFS;
+FFB_Effect effects[MAX_EFFECTS] = {0};
+FFB_BlockLoad_Feature_Data_t blockLoadReport = {0};
+uint8_t global_gain = 255;
+bool ffb_active = false;
 
 /* USER CODE END PV */
 
@@ -601,7 +605,7 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 
 				0x09,0xAB,    //    Usage Create New Effect Report
 				0xA1,0x02,    //    Collection Datalink
-				   0x85,HID_ID_NEWEFREP,    //    Report ID 1
+				   0x85,HID_ID_NEWEFREP,    //    Report ID 11h (17d)
 				   0x09,0x25,    //    Usage Effect Type
 				   0xA1,0x02,    //    Collection Datalink
 				 0x09, HID_USAGE_CONST,    //    Usage ET Constant Force
@@ -736,8 +740,8 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 static int8_t CUSTOM_HID_Init_FS(void);
 static int8_t CUSTOM_HID_DeInit_FS(void);
 static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state);
-static int8_t CUSTOM_HID_CtrlReqComplete(uint8_t request, uint16_t wLength);
 static uint8_t *CUSTOM_HID_GetReport(uint16_t *ReportLength);
+static int8_t USBD_CUSTOM_HID_SendReport_FS(uint8_t *report, uint16_t len);
 
 
 /**
@@ -750,9 +754,6 @@ USBD_CUSTOM_HID_ItfTypeDef USBD_CustomHID_fops_FS =
   CUSTOM_HID_Init_FS,
   CUSTOM_HID_DeInit_FS,
   CUSTOM_HID_OutEvent_FS
-#ifdef USBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED
-  ,CUSTOM_HID_CtrlReqComplete
-#endif /* USBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED */
 #ifdef USBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED
   ,CUSTOM_HID_GetReport
 #endif /* USBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED */
@@ -764,6 +765,152 @@ USBD_CUSTOM_HID_ItfTypeDef USBD_CustomHID_fops_FS =
   */
 
 /* Private functions ---------------------------------------------------------*/
+int find_free_effect(void)
+{
+	for (int i = 0; i < MAX_EFFECTS; i++)
+	{
+		if (effects[i].state == 0 && effects[i].type == 0)
+			return i;
+	}
+	return -1;
+}
+
+void create_new_effect(uint8_t effect_type)
+{
+	int id = find_free_effect();
+	if (id == -1)
+	{
+		blockLoadReport.reportId = HID_ID_BLKLDREP;
+		blockLoadReport.loadStatus = 2; // Load error
+		blockLoadReport.effectBlockIndex = 0;
+		blockLoadReport.ramPoolAvailable = 0;
+		return;
+	}
+
+	memset(&effects[id], 0, sizeof(FFB_Effect)); // Clean slate
+	effects[id].type = effect_type;
+	effects[id].gain = 255; // default full gain
+
+	blockLoadReport.reportId = HID_ID_BLKLDREP;
+	blockLoadReport.effectBlockIndex = id + 1;
+	blockLoadReport.loadStatus = 1; // Success
+	blockLoadReport.ramPoolAvailable = (MAX_EFFECTS - (id + 1)) * sizeof(FFB_Effect);
+
+	//send_status_report();
+}
+
+
+void process_set_constant_force(const FFB_SetConstantForce_Data_t* report)
+{
+	if (report->effectBlockIndex == 0 || report->effectBlockIndex > MAX_EFFECTS)
+		return;
+
+	uint8_t id = report->effectBlockIndex - 1;
+	effects[id].magnitude = report->magnitude;
+}
+
+void process_set_effect(const FFB_SetEffect_t* report)
+{
+	if (report->effectBlockIndex == 0 || report->effectBlockIndex > MAX_EFFECTS)
+		return;
+
+	uint8_t id = report->effectBlockIndex - 1;
+	FFB_Effect* effect = &effects[id];
+
+	effect->type = report->effectType;
+	effect->gain = report->gain;
+	effect->duration = report->duration;
+	effect->samplePeriod = report->samplePeriod;
+	effect->startDelay = report->startDelay;
+	effect->offset = 0;
+	effect->useEnvelope = false;
+
+	//send_status_report();
+}
+
+void process_set_condition(const FFB_SetCondition_Data_t* report)
+{
+	if (report->effectBlockIndex == 0 || report->effectBlockIndex > MAX_EFFECTS)
+		return;
+
+	uint8_t id = report->effectBlockIndex - 1;
+	uint8_t axis = report->parameterBlockOffset;
+
+	if (axis >= MAX_AXIS)
+		return;
+
+	FFB_Effect_Condition* cond = &effects[id].conditions[axis];
+
+	cond->cpOffset = report->cpOffset;
+	cond->positiveCoefficient = report->positiveCoefficient;
+	cond->negativeCoefficient = report->negativeCoefficient;
+	cond->positiveSaturation = report->positiveSaturation ? report->positiveSaturation : 0x7FFF;
+	cond->negativeSaturation = report->negativeSaturation ? report->negativeSaturation : 0x7FFF;
+	cond->deadBand = report->deadBand;
+
+	effects[id].useSingleCondition = (MAX_AXIS == 1 || report->parameterBlockOffset == 0);
+}
+
+
+void stop_all_effects(void)
+{
+	for (int i = 0; i < MAX_EFFECTS; i++)
+	{
+		effects[i].state = 0;
+	}
+}
+
+void reset_all_effects(void)
+{
+	memset(effects, 0, sizeof(effects));
+}
+
+void pause_all_effects(void)
+{
+	ffb_active = false;
+}
+
+void resume_effects(void)
+{
+	ffb_active = true;
+}
+
+void handle_ffb_control(uint8_t command)
+{
+	if (command & 0x01) ffb_active = true;   // Enable actuators
+	if (command & 0x02) ffb_active = false;  // Disable actuators
+	if (command & 0x04) stop_all_effects();  // Stop all
+	if (command & 0x08) reset_all_effects(); // Reset
+	if (command & 0x10) pause_all_effects(); // Pause
+	if (command & 0x20) resume_effects();    // Continue
+
+	//send_status_report();
+}
+
+void set_global_gain(uint8_t gain)
+{
+	global_gain = gain;
+}
+
+void free_effect(uint8_t index)
+{
+	if (index >= MAX_EFFECTS)
+		return;
+
+	memset(&effects[index], 0, sizeof(FFB_Effect));
+}
+
+void send_status_report(void)
+{
+    reportFFB_status_t status = {
+        .reportId = HID_ID_STATE,
+        .status = HID_ACTUATOR_POWER |
+                  (ffb_active ? HID_ENABLE_ACTUATORS | HID_EFFECT_PLAYING : HID_EFFECT_PAUSE)
+    };
+    USBD_CUSTOM_HID_SendReport_FS((uint8_t*)&status, sizeof(status));
+}
+
+
 
 /**
   * @brief  Initializes the CUSTOM HID media low layer
@@ -796,35 +943,68 @@ static int8_t CUSTOM_HID_DeInit_FS(void)
 static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
 {
 	/* USER CODE BEGIN 6 */
-	UNUSED(event_idx);
-	UNUSED(state);
+	USBD_CUSTOM_HID_HandleTypeDef *hhid = (USBD_CUSTOM_HID_HandleTypeDef *)hUsbDeviceFS.pClassDataCmsit[hUsbDeviceFS.classId];
 
-	switch(event_idx)
+	switch (event_idx)
 	{
 	case HID_ID_NEWEFREP:
-		switch(state)
+		create_new_effect(state);
+		break;
+
+	case HID_ID_CONSTREP:
+		process_set_constant_force((const FFB_SetConstantForce_Data_t*) hhid->Report_buf);
+		break;
+
+	case HID_ID_EFFREP:
+		process_set_effect((const FFB_SetEffect_t*) hhid->Report_buf);
+		break;
+
+	case HID_ID_CONDREP:
+		process_set_condition((const FFB_SetCondition_Data_t*) hhid->Report_buf);
+		break;
+
+	case HID_ID_CTRLREP:
+		handle_ffb_control(state); // state = command bitmask
+		break;
+
+	case HID_ID_GAINREP:
+		set_global_gain(state);
+		break;
+
+	case HID_ID_BLKFRREP:
+		free_effect(state - 1); // state = effect block index
+		break;
+
+	case HID_ID_EFOPREP:
+	{
+		const FFB_EffOp_Data_t* effop = (const FFB_EffOp_Data_t*) hhid->Report_buf;
+		uint8_t id = effop->effectBlockIndex - 1;
+
+		if (id >= MAX_EFFECTS)
+			break;
+
+		switch (effop->state)
 		{
-		case FFB_EFFECT_SPRING:
+			case 1: // Start
+				effects[id].state = 1;
+				effects[id].startTime = HAL_GetTick() + effects[id].startDelay;
 				break;
-		case FFB_EFFECT_FRICTION:
+
+			case 2: // Start solo
+				for (int i = 0; i < MAX_EFFECTS; i++) effects[i].state = 0;
+				effects[id].state = 1;
+				effects[id].startTime = HAL_GetTick() + effects[id].startDelay;
 				break;
-		case FFB_EFFECT_DAMPER:
-				break;
-		case FFB_EFFECT_CONSTANT:
-				break;
-		case FFB_EFFECT_SQUARE:
-				break;
-		case FFB_EFFECT_SINE:
-				break;
-		case FFB_EFFECT_TRIANGLE:
-				break;
-		case FFB_EFFECT_SAWTOOTHUP:
+
+			case 3: // Stop
+				effects[id].state = 0;
 				break;
 		}
 		break;
-	//todo: add all effects, maybe use CUSTOM_HID_CtrlReqComplete and/or CUSTOM_HID_GetReport ?
+	}
+
 	default:
-			break;
+		break;
 	}
 
 	/* Start next USB packet transfer once data processing is completed */
@@ -844,43 +1024,12 @@ static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
   * @param  len: The report length
   * @retval USBD_OK if all operations are OK else USBD_FAIL
   */
-/*
+
 static int8_t USBD_CUSTOM_HID_SendReport_FS(uint8_t *report, uint16_t len)
 {
   return USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, len);
 }
-*/
 
-#ifdef USBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED
-/**
-  * @brief  CUSTOM_HID_CtrlReqComplete
-  *         Manage the CUSTOM HID control request complete
-  * @param  request: control request
-  * @param  wLength: request wLength
-  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
-  */
-static int8_t CUSTOM_HID_CtrlReqComplete(uint8_t request, uint16_t wLength)
-{
-	UNUSED(wLength);
-
-	  switch (request)
-	  {
-	    case CUSTOM_HID_REQ_SET_REPORT:
-
-	      break;
-
-	    case CUSTOM_HID_REQ_GET_REPORT:
-
-	      break;
-
-	    default:
-	      break;
-	  }
-
-	  return (0);
-}
-
-#endif /* USBD_CUSTOMHID_CTRL_REQ_COMPLETE_CALLBACK_ENABLED */
 
 #ifdef USBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED
 /**
@@ -892,11 +1041,42 @@ static int8_t CUSTOM_HID_CtrlReqComplete(uint8_t request, uint16_t wLength)
   */
 static uint8_t *CUSTOM_HID_GetReport(uint16_t *ReportLength)
 {
-	UNUSED(ReportLength);
-	uint8_t *pbuff=0;
+	static uint8_t reportBuffer[sizeof(FFB_BlockLoad_Feature_Data_t)];
 
-	return (pbuff);
+	uint8_t report_id = hUsbDeviceFS.request.bRequest == CUSTOM_HID_REQ_GET_REPORT
+	                  ? hUsbDeviceFS.request.wValue & 0xFF
+	                  : 0;
+
+	switch (report_id)
+	{
+	case HID_ID_BLKLDREP:
+		blockLoadReport.reportId = HID_ID_BLKLDREP;
+		memcpy(reportBuffer, &blockLoadReport, sizeof(FFB_BlockLoad_Feature_Data_t));
+		*ReportLength = sizeof(FFB_BlockLoad_Feature_Data_t);
+		break;
+
+	case HID_ID_POOLREP:
+	{
+		static FFB_PIDPool_Feature_Data_t poolReport = {
+			.reportId = HID_ID_POOLREP,
+			.ramPoolSize = MAX_EFFECTS * sizeof(FFB_Effect),
+			.maxSimultaneousEffects = MAX_EFFECTS,
+			.memoryManagement = 1
+		};
+		memcpy(reportBuffer, &poolReport, sizeof(poolReport));
+		*ReportLength = sizeof(poolReport);
+		break;
+	}
+
+	default:
+		reportBuffer[0] = 0;
+		*ReportLength = 1;
+		break;
+	}
+
+	return reportBuffer;
 }
+
 
 #endif /* USBD_CUSTOMHID_CTRL_REQ_GET_REPORT_ENABLED */
 

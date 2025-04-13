@@ -1,10 +1,10 @@
-01:18:12 **** Incremental Build of configuration Debug for project SimulareVolan ****
+21:06:39 **** Incremental Build of configuration Debug for project SimulareVolan ****
 make -j16 all 
 arm-none-eabi-size  SimulareVolan.elf 
    text	   data	    bss	    dec	    hex	filename
-  29868	   1324	   4260	  35452	   8a7c	SimulareVolan.elf
+  31312	   1340	   7316	  39968	   9c20	SimulareVolan.elf
 Finished building: default.size.stdout
  
 
-01:18:12 Build Finished. 0 errors, 0 warnings. (took 302ms)
+21:06:40 Build Finished. 0 errors, 0 warnings. (took 303ms)
 
