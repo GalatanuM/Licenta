@@ -1,3 +1,8 @@
 encoder
 effects
-blockLoadReport
+ffb_active
+global_gain
+g_hhid
+viteza
+prezent
+(FFB_Effect)*g_hhid.Report_buf
